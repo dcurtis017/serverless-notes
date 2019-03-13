@@ -1,0 +1,27 @@
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      # generate a name based on stage
+      UserPoolName: ${self:custom.stage}-user-pool
+      # set email as username
+      UsernameAttributes:
+       - email
+      AutoVerifiedAttributes:
+        - email
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    ClientName: ${self.custom.stage}-user-pool-client
+    UserPoolId:
+      Ref: CognitoUserPool
+    ExplicitAuthFlows:
+      - ADMIN_NO_SRP_AUTH # srp secure remote protocol authentication ADMIN_NO_SRP_AUTH enables sign-in API for server-bases authentication to enable server side authentication
+    GenerateSecret: false
+
+Outputs:
+  UserPoolId:
+    Value:
+      Ref: CognitoUserPool
+  UserPoolClientId:
+    Value:
+      Ref: CognitoUserPoolClient
