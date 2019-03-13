@@ -9,6 +9,12 @@ plugins:
 # serverless-webpack configuration
 # Enable auto-packing of external modules
 custom:
+  stage: ${opt:stage, self:provider.stage}
+  tableName: ${self:custom.stage}-notes
+  tableThroughputs:
+    prod: 5
+    default: 1
+  tableThroughput: ${self.tableThroughputs.${self:custom.stage}, self:custom.tableThroughputs.default}
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
@@ -16,7 +22,7 @@ custom:
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: prod
+  stage: dev
   region: us-east-1
   # To load environment variables externally
   # rename env.example to env.yml and uncomment
@@ -24,6 +30,8 @@ provider:
   # commit your env.yml.
   #
   #environment: ${file(env.yml):${self:provider.stage}}
+  environment:
+    tableName: ${self:custom.tableName}
   # iamRoleStatements defines permission policiy for the lambda
   # below we give our lambda access to dynamodb
   iamRoleStatements:
@@ -36,7 +44,8 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:us-east-1:*:*"
+      Resource:
+        - "Fn::GetAtt": [NotesTable, Arn]
 functions:
   create:
     handler: create.main
